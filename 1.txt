@@ -1,0 +1,3 @@
+git branch -M main
+pnpm approve-builds
+corepack use pnpm@10.13.1
