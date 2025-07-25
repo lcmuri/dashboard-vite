@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   Card,
@@ -22,8 +22,176 @@ import Dropzone from "react-dropzone";
 //Import Images
 import avatar3 from "@/assets/images/users/avatar-3.jpg";
 import avatar4 from "@/assets/images/users/avatar-4.jpg";
+import VerticalLayouts from "@/Layouts/VerticalLayouts";
+import CategoryTree from "@/Components/Custom/CategoryTree";
+import { Category } from "@/Components/Custom/category-types";
+import {
+  buildCategoryTree,
+  MenuItem,
+} from "@/Components/Custom/categoryTreeConverter";
+
+// Simulated API data - In a real application, this would come from a fetch call
+const API_DATA: Category[] = [
+  {
+    name: "anaesthetics, pre- & intra-operative medicines and medical gase",
+    slug: "anaesthetics-pre-intra-operative-medicines-and-medical-gase",
+    description: null,
+    status: "active",
+    id: 1,
+    parent_id: null,
+    created_at: "2025-07-15T16:16:47",
+    updated_at: "2025-07-18T10:57:59",
+    level: 1,
+    children: [],
+  },
+  {
+    name: "general anaesthetics",
+    slug: "general-anaesthetics",
+    description: null,
+    status: "active",
+    id: 2,
+    parent_id: 1,
+    created_at: "2025-07-18T10:12:02",
+    updated_at: "2025-07-18T10:57:59",
+    level: 2,
+    children: [],
+  },
+  {
+    name: "Inhalational medicines",
+    slug: "inhalational-medicines",
+    description: null,
+    status: "active",
+    id: 3,
+    parent_id: 2,
+    created_at: "2025-07-18T10:14:00",
+    updated_at: "2025-07-18T10:14:00",
+    level: 3,
+    children: [],
+  },
+  {
+    name: "injectable medicines",
+    slug: "injectable-medicines",
+    description: null,
+    status: "active",
+    id: 4,
+    parent_id: 2,
+    created_at: "2025-07-18T10:57:59",
+    updated_at: "2025-07-18T11:56:49",
+    level: 3,
+    children: [],
+  },
+  {
+    name: "Cardiovascular System",
+    slug: "cardiovascular-system",
+    description: null,
+    status: "active",
+    id: 5,
+    parent_id: null,
+    created_at: "2025-07-19T09:00:00",
+    updated_at: "2025-07-19T09:00:00",
+    level: 1,
+    children: [],
+  },
+  {
+    name: "Antihypertensives",
+    slug: "antihypertensives",
+    description: null,
+    status: "active",
+    id: 6,
+    parent_id: 5,
+    created_at: "2025-07-19T09:05:00",
+    updated_at: "2025-07-19T09:05:00",
+    level: 2,
+    children: [],
+  },
+  {
+    name: "Beta-blockers",
+    slug: "beta-blockers",
+    description: null,
+    status: "active",
+    id: 7,
+    parent_id: 6,
+    created_at: "2025-07-19T09:10:00",
+    updated_at: "2025-07-19T09:10:00",
+    level: 3,
+    children: [],
+  },
+];
 
 const CreateMedicine = () => {
+  const [navData, setNavData] = useState<MenuItem[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Function to simulate fetching and processing category data
+  const fetchCategoryData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      // Simulate API call delay
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      // In a real application, you would fetch from an actual endpoint:
+      // const response = await fetch("http://127.0.0.1:8000/medicines/categories/?skip=0&limit=100");
+      // if (!response.ok) {
+      //   throw new Error(`HTTP error! status: ${response.status}`);
+      // }
+      // const flatCategories: Category[] = await response.json();
+
+      const flatCategories: Category[] = API_DATA; // Using simulated data for demonstration
+
+      const treeData = buildCategoryTree(flatCategories);
+
+      // Initialize stateVariables for all menu items for Collapse component
+      const initializeCollapseState = (items: MenuItem[]): MenuItem[] => {
+        return items.map((item) => ({
+          ...item,
+          stateVariables: false, // Default to closed
+          subItems: item.subItems
+            ? initializeCollapseState(item.subItems)
+            : undefined,
+        }));
+      };
+
+      setNavData(initializeCollapseState(treeData));
+    } catch (err: any) {
+      console.error("Failed to fetch categories:", err);
+      setError(err.message || "An unknown error occurred.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Fetch data on component mount
+  useEffect(() => {
+    fetchCategoryData();
+  }, [fetchCategoryData]);
+
+  // Function to handle menu item clicks to toggle collapse state
+  const handleMenuItemClick = useCallback((itemId: number) => {
+    setNavData((prevNavData) => {
+      const toggleCollapse = (items: MenuItem[]): MenuItem[] => {
+        return items.map((item) => {
+          if (item.id === itemId) {
+            return { ...item, stateVariables: !item.stateVariables };
+          } else if (item.subItems && item.subItems.length > 0) {
+            return { ...item, subItems: toggleCollapse(item.subItems) };
+          }
+          return item;
+        });
+      };
+      return toggleCollapse(prevNavData);
+    });
+  }, []);
+
+  if (loading) {
+    return <div className="p-4 text-center">Loading categories...</div>;
+  }
+
+  if (error) {
+    return <div className="p-4 text-danger text-center">Error: {error}</div>;
+  }
+
   const SingleOptions = [
     { value: "Watches", label: "Watches" },
     { value: "Headset", label: "Headset" },
@@ -32,24 +200,24 @@ const CreateMedicine = () => {
     { value: "4 star", label: "4 star" },
   ];
 
-  const [selectedMulti, setselectedMulti] = useState<any>(null);
+  // const [selectedMulti, setselectedMulti] = useState<any>(null);
 
-  const handleMulti = (selectedMulti: any) => {
-    setselectedMulti(selectedMulti);
-  };
+  // const handleMulti = (selectedMulti: any) => {
+  //   setselectedMulti(selectedMulti);
+  // };
 
   //Dropzone file upload
-  const [selectedFiles, setselectedFiles] = useState<any>([]);
+  // const [selectedFiles, setselectedFiles] = useState<any>([]);
 
-  const handleAcceptedFiles = (files: any) => {
-    files.map((file: any) =>
-      Object.assign(file, {
-        preview: URL.createObjectURL(file),
-        formattedSize: formatBytes(file.size),
-      })
-    );
-    setselectedFiles(files);
-  };
+  // const handleAcceptedFiles = (files: any) => {
+  //   files.map((file: any) =>
+  //     Object.assign(file, {
+  //       preview: URL.createObjectURL(file),
+  //       formattedSize: formatBytes(file.size),
+  //     })
+  //   );
+  //   setselectedFiles(files);
+  // };
 
   /**
    * Formats the size
@@ -185,7 +353,7 @@ const CreateMedicine = () => {
                   <div>
                     <p className="text-muted">Add Attached files here.</p>
 
-                    <Dropzone
+                    {/* <Dropzone
                       onDrop={(acceptedFiles) => {
                         handleAcceptedFiles(acceptedFiles);
                       }}
@@ -203,9 +371,9 @@ const CreateMedicine = () => {
                           </div>
                         </div>
                       )}
-                    </Dropzone>
+                    </Dropzone> */}
 
-                    <ul className="list-unstyled mb-0" id="dropzone-preview">
+                    {/* <ul className="list-unstyled mb-0" id="dropzone-preview">
                       {selectedFiles.map((f: any, i: any) => {
                         return (
                           <Card
@@ -239,7 +407,7 @@ const CreateMedicine = () => {
                           </Card>
                         );
                       })}
-                    </ul>
+                    </ul> */}
                   </div>
                 </CardBody>
               </Card>
@@ -258,166 +426,12 @@ const CreateMedicine = () => {
             </Col>
 
             <Col lg={4}>
-              <div className="card">
-                <div className="card-header">
-                  <h5 className="card-title mb-0">Privacy</h5>
-                </div>
-                <CardBody>
-                  <div>
-                    <Label
-                      htmlFor="choices-privacy-status-input"
-                      className="form-label"
-                    >
-                      Status
-                    </Label>
-                    <select
-                      className="form-select"
-                      data-choices
-                      data-choices-search-false
-                      id="choices-privacy-status-input"
-                    >
-                      <option defaultValue="Private">Private</option>
-                      <option value="Team">Team</option>
-                      <option value="Public">Public</option>
-                    </select>
-                  </div>
-                </CardBody>
-              </div>
-
-              <div className="card">
-                <div className="card-header">
-                  <h5 className="card-title mb-0">Tags</h5>
-                </div>
-                <CardBody>
-                  <div className="mb-3">
-                    <Label
-                      htmlFor="choices-categories-input"
-                      className="form-label"
-                    >
-                      Categories
-                    </Label>
-                    <select
-                      className="form-select"
-                      data-choices
-                      data-choices-search-false
-                      id="choices-categories-input"
-                    >
-                      <option defaultValue="Designing">Designing</option>
-                      <option value="Development">Development</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="choices-text-input" className="form-label">
-                      Skills
-                    </Label>
-                    <Select
-                      value={selectedMulti}
-                      isMulti={true}
-                      onChange={(selectedMulti: any) => {
-                        handleMulti(selectedMulti);
-                      }}
-                      options={SingleOptions}
-                    />
-                  </div>
-                </CardBody>
-              </div>
-
               <Card>
-                <CardHeader>
-                  <h5 className="card-title mb-0">Members</h5>
-                </CardHeader>
                 <CardBody>
-                  <div className="mb-3">
-                    <Label htmlFor="choices-lead-input" className="form-label">
-                      Team Lead
-                    </Label>
-                    <select
-                      className="form-select"
-                      data-choices
-                      data-choices-search-false
-                      id="choices-lead-input"
-                    >
-                      <option defaultValue="Brent Gonzalez">
-                        Brent Gonzalez
-                      </option>
-                      <option value="Darline Williams">Darline Williams</option>
-                      <option value="Sylvia Wright">Sylvia Wright</option>
-                      <option value="Ellen Smith">Ellen Smith</option>
-                      <option value="Jeffrey Salazar">Jeffrey Salazar</option>
-                      <option value="Mark Williams">Mark Williams</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <Label className="form-label">Team Members</Label>
-                    <div className="avatar-group">
-                      <Link
-                        to="#"
-                        className="avatar-group-item"
-                        data-bs-toggle="tooltip"
-                        data-bs-trigger="hover"
-                        data-bs-placement="top"
-                        title="Brent Gonzalez"
-                      >
-                        <div className="avatar-xs">
-                          <img
-                            src={avatar3}
-                            alt=""
-                            className="rounded-circle img-fluid"
-                          />
-                        </div>
-                      </Link>
-                      <Link
-                        to="#"
-                        className="avatar-group-item"
-                        data-bs-toggle="tooltip"
-                        data-bs-trigger="hover"
-                        data-bs-placement="top"
-                        title="Sylvia Wright"
-                      >
-                        <div className="avatar-xs">
-                          <div className="avatar-title rounded-circle bg-secondary">
-                            S
-                          </div>
-                        </div>
-                      </Link>
-                      <Link
-                        to="#"
-                        className="avatar-group-item"
-                        data-bs-toggle="tooltip"
-                        data-bs-trigger="hover"
-                        data-bs-placement="top"
-                        title="Ellen Smith"
-                      >
-                        <div className="avatar-xs">
-                          <img
-                            src={avatar4}
-                            alt=""
-                            className="rounded-circle img-fluid"
-                          />
-                        </div>
-                      </Link>
-                      <Link
-                        to="#"
-                        className="avatar-group-item"
-                        data-bs-toggle="tooltip"
-                        data-bs-trigger="hover"
-                        data-bs-placement="top"
-                        title="Add Members"
-                      >
-                        <div
-                          className="avatar-xs"
-                          data-bs-toggle="modal"
-                          data-bs-target="#inviteMembersModal"
-                        >
-                          <div className="avatar-title fs-16 rounded-circle bg-light border-dashed border text-primary">
-                            +
-                          </div>
-                        </div>
-                      </Link>
-                    </div>
-                  </div>
+                  <CategoryTree
+                    items={navData}
+                    handleMenuItemClick={handleMenuItemClick}
+                  />
                 </CardBody>
               </Card>
             </Col>
