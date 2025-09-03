@@ -1,34 +1,37 @@
 import React, { Fragment, useEffect, useState } from "react";
-import { CardBody, Col, Row, Table } from "reactstrap";
 import { Link } from "react-router";
+import { CardBody, Col, Row, Table } from "reactstrap";
 
 import {
-  Column,
-  Table as ReactTable,
-  ColumnFiltersState,
-  FilterFn,
-  useReactTable,
+  flexRender,
   getCoreRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
-  flexRender,
+  useReactTable,
+} from "@tanstack/react-table";
+
+import type {
+  Column,
+  ColumnFiltersState,
+  FilterFn,
+  Table as ReactTable,
 } from "@tanstack/react-table";
 
 import { rankItem } from "@tanstack/match-sorter-utils";
 
 import {
-  ProductsGlobalFilter,
-  CustomersGlobalFilter,
-  OrderGlobalFilter,
-  ContactsGlobalFilter,
   CompaniesGlobalFilter,
-  LeadsGlobalFilter,
+  ContactsGlobalFilter,
   CryptoOrdersGlobalFilter,
+  CustomersGlobalFilter,
   InvoiceListGlobalSearch,
-  TicketsListGlobalFilter,
+  LeadsGlobalFilter,
   NFTRankingGlobalFilter,
+  OrderGlobalFilter,
+  ProductsGlobalFilter,
   TaskListGlobalFilter,
+  TicketsListGlobalFilter,
 } from "../../Components/Common/GlobalSearchFilter";
 
 // Column Filter

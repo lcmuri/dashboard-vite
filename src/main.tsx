@@ -1,12 +1,14 @@
+import { configureStore } from "@reduxjs/toolkit";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import App from "./App.tsx";
-import { configureStore } from "@reduxjs/toolkit";
-import rootReducer from "./slices/index.ts";
 import { Provider } from "react-redux";
 import { BrowserRouter } from "react-router";
+import App from "./App.tsx";
+import rootReducer from "./slices/index.ts";
 
 const store = configureStore({ reducer: rootReducer, devTools: true });
+
+export type AppDispatch = typeof store.dispatch;
 
 const root = createRoot(document.getElementById("root")!);
 

@@ -1,28 +1,57 @@
 {
   "compilerOptions": {
+    // --- Base Project Configuration (from your initial tsconfig.json) ---
     "baseUrl": "./src",
     "paths": {
       "@/*": [
         "*"
       ]
     },
-    "module": "ESNext",
-    "moduleResolution": "Node",
-    "resolveJsonModule": true,
-    "esModuleInterop": true,
     "jsx": "react-jsx",
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
     "types": [
-      "vite/client"
-    ]
+      "vite/client" // Essential for Vite client-side code
+    ],
+    // --- Module Resolution & Target (Combined/Prioritized from app & node configs) ---
+    // Use "ESNext" for module output across the board for modern environments.
+    "module": "ESNext",
+    // "bundler" is the modern and recommended module resolution for Vite/modern bundlers.
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    // Target for client-side code (browser compatibility)
+    // "ES2015" is a common baseline for broad browser support.
+    "target": "ES2015",
+    "useDefineForClassFields": true,
+    // Combined libraries for both DOM and modern ES features.
+    "lib": [
+      "ES2015",
+      "es2015.promise",
+      "ES2017",
+      "ES2023", // Include ES2023 for newer features that might be used, but still target ES2015 for down-compilation
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "skipLibCheck": true, // Speeds up compilation by skipping node_modules type checks
+    // --- Build Output & Incremental Build ---
+    "noEmit": true, // Crucial for bundler setups where the bundler handles JS output
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.tsbuildinfo", // Single build info file
+    // --- Strictness and Linting (All strict options from app & node configs) ---
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "erasableSyntaxOnly": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedSideEffectImports": true
   },
   "include": [
-    "src"
+    "src",
+    "vite.config.ts" // Explicitly include vite.config.ts in the main config
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
   ]
 }
-// {
-//   "files": [],
-//   "references": [
-//     { "path": "./tsconfig.app.json" },
-//     { "path": "./tsconfig.node.json" }
-//   ]
-// }

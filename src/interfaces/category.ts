@@ -16,3 +16,9 @@ export interface CategoryTreeProps {
   className?: string;
   onCategorySelect?: (category: Category) => void;
 }
+
+export interface CategoriesState {
+  list: Category[];
+  status: "idle" | "loading" | "succeeded" | "failed";
+  error: string | null;
+}

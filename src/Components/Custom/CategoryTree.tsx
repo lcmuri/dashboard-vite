@@ -9,8 +9,8 @@ export interface MenuItem {
   id: number;
   label: string;
   link: string;
-  icon?: string; // Optional icon class for display
-  isHeader?: boolean; // Indicates if the item is a header (though not strictly used for rendering in this component)
+  icon?: string; // Optional icon class for display (e.g., "ri-dashboard-line")
+  isHeader?: boolean; // Indicates if the item is a header (not directly used for rendering in this component)
   subItems?: MenuItem[]; // Array of child menu items for nesting
   click?: (event: React.MouseEvent) => void; // Optional click handler
   stateVariables?: boolean; // Controls the open/close state of the reactstrap Collapse component
@@ -50,25 +50,35 @@ const CategoryTree: React.FC<CategoryTreeProps> = ({
                 e.preventDefault(); // Prevent default navigation for dropdown toggles
                 handleMenuItemClick(item.id); // Call the handler to toggle collapse state
               }}
-              className="nav-link menu-link"
+              className="nav-link menu-link d-flex align-items-center" // Added d-flex and align-items-center for layout
               to={item.link ? item.link : "/#"} // Use item's link or a fallback
               data-bs-toggle="collapse" // Bootstrap attribute for collapse behavior
               aria-expanded={item.stateVariables ? "true" : "false"} // ARIA attribute for accessibility
             >
+              {/* Render category-specific icon if present */}
               {item.icon && <i className={item.icon}></i>}{" "}
-              {/* Render icon if provided */}
-              <span data-key={`t-${item.slug || item.id}`}>
+              <span
+                className="flex-grow-1"
+                data-key={`t-${item.slug || item.id}`}
+              >
                 {item.label}
               </span>{" "}
-              {/* Display item label */}
-              {item.badgeName ? ( // Render an optional badge
+              {/* Display item label, flex-grow-1 to push badge/icon to end */}
+              {/* Show number of children categories in a badge */}
+              {item.subItems && item.subItems.length > 0 && (
                 <span
-                  className={`badge badge-pill bg-${item.badgeColor}`}
-                  data-key="t-new"
+                  className={`badge badge-pill bg-info ms-2`} // Using bg-info for a blue badge, ms-2 for margin-left
+                  data-key="t-child-count"
                 >
-                  {item.badgeName}
+                  {item.subItems.length}
                 </span>
-              ) : null}
+              )}
+              {/* Collapse indicator icon (e.g., chevron) - always present for collapsible items */}
+              <i
+                className={`ri-arrow-right-s-line ms-auto transition-transform duration-300 ${
+                  item.stateVariables ? "rotate-90" : ""
+                }`}
+              ></i>
             </Link>
             {/* Collapse component to show/hide sub-items */}
             <Collapse
@@ -89,17 +99,9 @@ const CategoryTree: React.FC<CategoryTreeProps> = ({
               className="nav-link menu-link"
               to={item.link ? item.link : "/#"} // Link to the category page
             >
-              {item.icon && <i className={item.icon}></i>}{" "}
-              {/* Render icon if provided */}
+              {/* Icon is not rendered for non-collapsible items as per request */}
               <span>{item.label}</span> {/* Display item label */}
-              {item.badgeName ? ( // Render an optional badge
-                <span
-                  className={`badge badge-pill bg-${item.badgeColor}`}
-                  data-key="t-new"
-                >
-                  {item.badgeName}
-                </span>
-              ) : null}
+              {/* No badge for non-collapsible items */}
             </Link>
           </li>
         )}
@@ -125,8 +127,8 @@ CategoryTree.propTypes = {
       icon: PropTypes.string,
       subItems: PropTypes.array, // Can be an array of MenuItem objects
       stateVariables: PropTypes.bool,
-      badgeName: PropTypes.string,
-      badgeColor: PropTypes.string,
+      badgeName: PropTypes.string, // Still here, but logic uses subItems.length
+      badgeColor: PropTypes.string, // Still here, but logic uses 'bg-info'
       slug: PropTypes.string, // Slug is now included in PropTypes
     })
   ).isRequired,

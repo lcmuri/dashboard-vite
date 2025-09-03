@@ -1,9 +1,11 @@
+import CategoryList from "@/pages/IMS/Medicine/Category/CategoryList";
 import Starter from "@/pages/Pages/Starter";
-import CreateMedicine from "../pages/IMS/Medicine/CreateMedicine";
 import { Navigate } from "react-router";
+// import CreateMedicine from "../pages/IMS/Medicine/CreateMedicine";
 
 const authProtectedRoutes = [
-  { path: "/create-medicine", component: <CreateMedicine /> },
+  // { path: "/create-medicine", component: <CreateMedicine /> },
+  { path: "/category-list", component: <CategoryList /> },
   { path: "/dashboard", component: <Starter /> },
   { path: "/index", component: <Starter /> },
 
